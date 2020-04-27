@@ -30,11 +30,11 @@ try:
 except:
     import elementtree.ElementTree as ET
 
-import sunspec.core.pics as pics
-import sunspec.core.smdx as smdx
-import sunspec.core.suns as suns
-import sunspec.core.util as util
-from sunspec.core.util import SunSpecError
+from . import pics
+from . import smdx
+from . import suns
+from . import util
+from .util import SunSpecError
 
 
 fspath = getattr(os, 'fspath', str)

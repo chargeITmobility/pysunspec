@@ -21,8 +21,9 @@
     IN THE SOFTWARE.
 """
 
-import sunspec.core.util as util
 import sys
+
+from . import util
 
 # Python 3 compatibility for long()
 if sys.version_info > (3,):

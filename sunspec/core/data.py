@@ -30,7 +30,7 @@ try:
 except:
     import elementtree.ElementTree as ET
 
-import sunspec.core.util as util
+from . import util
 
 SDX_VERSION = '1'
 SDX_SUNSPEC_DATA = 'sunSpecData'

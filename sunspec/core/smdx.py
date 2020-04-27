@@ -21,7 +21,7 @@
     IN THE SOFTWARE.
 """
 
-import sunspec.core.suns as suns
+from . import suns
 
 SMDX_ROOT = 'sunSpecModels'
 SMDX_MODEL = 'model'
