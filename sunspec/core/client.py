@@ -110,6 +110,9 @@ class ClientDevice(device.Device):
         trace :
             Enable low level trace.
 
+        max_count :
+            Maximum register count for a single Modbus RTU request.
+
     Raises:
 
         SunSpecClientError: Raised for any sunspec module error.
@@ -142,8 +145,9 @@ class ClientDevice(device.Device):
             first time.
     """
 
-    def __init__(self, device_type, slave_id=None, name=None, pathlist=None, baudrate=None, parity=None, ipaddr=None, ipport=None,
-                 tls=False, cafile=None, certfile=None, keyfile=None, insecure_skip_tls_verify=False, timeout=None, trace=False):
+    def __init__(self, device_type, slave_id=None, name=None, pathlist = None, baudrate=None, parity=None, ipaddr=None, ipport=None,
+                 tls=False, cafile=None, certfile=None, keyfile=None, insecure_skip_tls_verify=False, timeout=None, trace=False,
+                 max_count=modbus.REQ_COUNT_MAX):
         device.Device.__init__(self, addr=None)
 
         self.type = device_type
@@ -156,7 +160,7 @@ class ClientDevice(device.Device):
 
         try:
             if device_type == RTU:
-                self.modbus_device = modbus.ModbusClientDeviceRTU(slave_id, name, baudrate, parity, timeout, self, trace)
+                self.modbus_device = modbus.ModbusClientDeviceRTU(slave_id, name, baudrate, parity, timeout, self, trace, max_count)
             elif device_type == TCP:
                 self.modbus_device = modbus.ModbusClientDeviceTCP(slave_id, ipaddr, ipport, timeout, self, trace, tls, cafile, certfile, keyfile, insecure_skip_tls_verify)
             elif device_type == MAPPED:
@@ -785,6 +789,9 @@ class SunSpecClientDevice(object):
         trace :
             Enable low level trace.
 
+        max_count :
+            Maximum register count for a single Modbus RTU request.
+
     Raises:
 
         SunSpecClientError: Raised for any sunspec module error.
@@ -807,10 +814,11 @@ class SunSpecClientDevice(object):
     """
 
     def __init__(self, device_type, slave_id=None, name=None, pathlist = None, baudrate=None, parity=None, ipaddr=None, ipport=None,
-                 tls=False, cafile=None, certfile=None, keyfile=None, insecure_skip_tls_verify=False, timeout=None, trace=False, scan_progress=None, scan_delay=None):
+                 tls=False, cafile=None, certfile=None, keyfile=None, insecure_skip_tls_verify=False, timeout=None, trace=False,
+                 scan_progress=None, scan_delay=None, max_count=modbus.REQ_COUNT_MAX):
 
         # super(self.__class__, self).__init__(device_type, slave_id, name, pathlist, baudrate, parity, ipaddr, ipport)
-        self.device = ClientDevice(device_type, slave_id, name, pathlist, baudrate, parity, ipaddr, ipport, tls, cafile, certfile, keyfile, insecure_skip_tls_verify, timeout, trace)
+        self.device = ClientDevice(device_type, slave_id, name, pathlist, baudrate, parity, ipaddr, ipport, tls, cafile, certfile, keyfile, insecure_skip_tls_verify, timeout, trace, max_count)
         self.models = []
 
         try:
