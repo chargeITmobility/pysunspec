@@ -21,7 +21,7 @@
     IN THE SOFTWARE.
 """
 
-import sunspec.core.suns as suns
+from . import suns
 
 PICS_ROOT = 'sunSpecPics'
 PICS_ATTR_VERSION = 'v'

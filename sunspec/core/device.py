@@ -29,10 +29,10 @@ try:
 except:
     import elementtree.ElementTree as ET
 
-import sunspec.core.pics as pics
-import sunspec.core.smdx as smdx
-import sunspec.core.suns as suns
-from sunspec.core.util import SunSpecError
+from . import pics
+from . import smdx
+from . import suns
+from .util import SunSpecError
 
 # file path list
 file_pathlist = None

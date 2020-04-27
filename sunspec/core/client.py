@@ -25,11 +25,12 @@ import os
 import time
 import struct
 import sys
-import sunspec.core.modbus.client as modbus
-import sunspec.core.device as device
-import sunspec.core.util as util
-import sunspec.core.suns as suns
-from sunspec.core.util import SunSpecError
+
+from .modbus import client as modbus
+from . import device
+from . import util
+from . import suns
+from .util import SunSpecError
 
 RTU = 'RTU'
 TCP = 'TCP'

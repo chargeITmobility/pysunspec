@@ -32,7 +32,7 @@ try:
 except:
     import elementtree.ElementTree as ET
 
-import sunspec.core.modbus.mbmap as mbmap
+from . import mbmap
 
 PARITY_NONE = 'N'
 PARITY_EVEN = 'E'
