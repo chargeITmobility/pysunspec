@@ -716,7 +716,107 @@ def model_class_get(model_id):
 
     return class_
 
-class SunSpecClientDevice(object):
+class SunSpecClientDeviceBase(object):
+    """This is the base for wrappers around  sunspec.core.ClientDevice class to
+    provide an alternate syntax for scripting. By placing the model (fixed
+    block) points, and repeating block points directly on the model and
+    repeating block objects as attributes, the syntax for accessing them is
+    simplified.
+
+    The model and block classes within the device are dynamically generated
+    based on the model type with the appropriate attributes being added during
+    creation.
+
+    Parameters:
+
+        device :
+            The sunspec.core.ClientDevice to wrap. This device is expected to
+            have its models already set up - either by scanning or manual
+            configuration.
+
+    Raises:
+
+        SunSpecClientError: Raised for any sunspec module error.
+
+    Attributes:
+
+        device
+            The :const:`sunspec.core.client.ClientDevice` associated with this
+            object.
+
+        models
+            List of models present in the device in the order in which they
+            appear in the device. If there is a single instance of the model in
+            the device, the list element is a model object.
+
+            If there are multiple instances of the same model in the list, the
+            list element for that model is a list of the models of that type in
+            the order in which they appear in the device with the first element
+            having an index of 1.
+    """
+
+    def __init__(self, device):
+        self.device = device
+        self.models = []
+
+        try:
+            # create named attributes for each model
+            for model in self.device.models_list:
+                model_id = str(model.id)
+                c = model_class_get(model_id)
+                if model.model_type is not None:
+                    name = model.model_type.name
+                else:
+                    name = 'model_' + model_id
+                model_class = c(model, name)
+                existing = getattr(self, name, None)
+                # if model id already defined
+                if existing:
+                    # if model id definition is not a list, turn it into a list and add existing model
+                    if type(self[name]) is not list:
+                        # model instance index starts at 1 so first first list element is None
+                        setattr(self, name, [None])
+                        self[name].append(existing)
+                    # add new model to the list
+                    self[name].append(model_class)
+                # if first model id instance, set attribute as model
+                else:
+                    setattr(self, name, model_class)
+                    self.models.append(name)
+        except Exception as e:
+            if self.device is not None:
+                self.device.close()
+            raise
+
+    def close(self):
+        """Release resources associated with the device. Should be called when
+        the device object is no longer in use.
+        """
+
+        self.device.close()
+
+    def read(self):
+        """Read the points for all models in the device from the physical
+        device.
+        """
+
+        self.device.read_points()
+
+    def __getitem__(self, key):
+        return self.__dict__.get(key, None)
+
+    def __setitem__(self, key, item):
+        self.__dict__.set(key, item)
+
+    def __str__(self):
+
+        s = ''
+        for model in self.models:
+            s += str(self[model])
+
+        return s
+
+class SunSpecClientDevice(SunSpecClientDeviceBase):
 
     """This class wraps the sunspec.core.ClientDevice class to provide an
     alternate syntax for scripting. By placing the model (fixed block) points,
@@ -819,67 +919,15 @@ class SunSpecClientDevice(object):
 
         # super(self.__class__, self).__init__(device_type, slave_id, name, pathlist, baudrate, parity, ipaddr, ipport)
         self.device = ClientDevice(device_type, slave_id, name, pathlist, baudrate, parity, ipaddr, ipport, tls, cafile, certfile, keyfile, insecure_skip_tls_verify, timeout, trace, max_count)
-        self.models = []
-
         try:
             # scan device models
-            self.device.scan(progress=scan_progress, delay=scan_delay)
-
-            # create named attributes for each model
-            for model in self.device.models_list:
-                model_id = str(model.id)
-                c = model_class_get(model_id)
-                if model.model_type is not None:
-                    name = model.model_type.name
-                else:
-                    name = 'model_' + model_id
-                model_class = c(model, name)
-                existing = getattr(self, name, None)
-                # if model id already defined
-                if existing:
-                    # if model id definition is not a list, turn it into a list and add existing model
-                    if type(self[name]) is not list:
-                        # model instance index starts at 1 so first first list element is None
-                        setattr(self, name, [None])
-                        self[name].append(existing)
-                    # add new model to the list
-                    self[name].append(model_class)
-                # if first model id instance, set attribute as model
-                else:
-                    setattr(self, name, model_class)
-                    self.models.append(name)
+            device.scan(progress=scan_progress, delay=scan_delay)
         except Exception as e:
-            if self.device is not None:
-                self.device.close()
+            if device is not None:
+                device.close()
             raise
 
-    def close(self):
-        """Release resources associated with the device. Should be called when
-        the device object is no longer in use.
-        """
-
-        self.device.close()
-
-    def read(self):
-        """Read the points for all models in the device from the physical
-        device.
-        """
-
-        self.device.read_points()
-
-    def __getitem__(self, key):
-        return self.__dict__.get(key, None)
-
-    def __setitem__(self, key, item):
-        self.__dict__.set(key, item)
-
-    def __str__(self):
-
-        s = ''
-        for model in self.models:
-            s += str(self[model])
-
-        return s
+        super(self.__class__, self).__init__(device)
 
 if __name__ == "__main__":
 
