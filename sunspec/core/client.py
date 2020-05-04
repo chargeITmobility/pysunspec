@@ -415,6 +415,14 @@ class ClientModel(device.Model):
             except:
                 raise
 
+    def _frame_would_overflow(self, payload_len, point_len):
+        result = False
+
+        if self.device.type == RTU:
+            result = payload_len + point_len > self.device.modbus_device.max_count
+
+        return result
+
     def write_points(self):
         """Write all points that have been modified since the last write
         operation to the physical device.
@@ -423,6 +431,7 @@ class ClientModel(device.Model):
         addr = None
         next_addr = None
         data = b''
+        data_len = None
 
         for block in self.blocks:
             for point in block.points_list:
@@ -433,13 +442,18 @@ class ClientModel(device.Model):
                     if addr is None:
                         addr = point_addr
                         data = b''
+                        data_len = 0
                     else:
-                        if point_addr != next_addr:
+                        # Align writes on data point boundaries to have each of
+                        # them updated as a whole.
+                        if point_addr != next_addr or self._frame_would_overflow(data_len, point_len):
                             block.model.device.write(addr, data)
                             addr = point_addr
                             data = b''
+                            data_len = 0
                     next_addr = point_addr + point_len
                     data += point_data
+                    data_len += point_len
                     point.dirty = False
             if addr is not None:
                 block.model.device.write(addr, data)
