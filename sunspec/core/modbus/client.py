@@ -228,6 +228,11 @@ class ModbusClientRTU(object):
 
         req = struct.pack('>BBHH', int(slave_id), op, int(addr), int(count))
         req += struct.pack('>H', computeCRC(req))
+        if sys.version_info > (3,):
+            temp = ""
+            for i in req:
+                temp += chr(i)
+            req = temp
 
         if trace_func:
             s = '{}:{}[addr={}] ->'.format(self.name, str(slave_id), addr)
@@ -237,6 +242,8 @@ class ModbusClientRTU(object):
 
         self.serial.flushInput()
         try:
+            if sys.version_info > (3,):
+                req = bytes(req, "latin-1")
             self.serial.write(req)
         except Exception as e:
             raise ModbusClientError('Serial write error: %s' % str(e))
