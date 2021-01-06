@@ -442,7 +442,8 @@ class ModbusClientRTU(object):
         if self.serial is not None:
             while (count > 0):
                 if count > max_count:
-                    write_count = max_count
+                    raise ModbusClientError('Data to write longer than maximum register count per write (%d > %d)'
+                        % (count, max_count))
                 else:
                     write_count = count
                 start = int(write_offset * 2)
